@@ -27,12 +27,11 @@ curl http://localhost:3000/health
 
 ## デモの進め方
 
-研修では `prompts/` 配下の4ファイルを番号順に使用します。
+研修では `prompts/` 配下の3ファイルを番号順に使用します。
 
 1. `prompts/01-code-review.md` - アプリケーションコードをレビューする
 2. `prompts/02-infrastructure-review.md` - Terraformとシステム前提をレビューする
 3. `prompts/03-cross-layer-review.md` - コードとインフラを横断してAttack Pathをレビューする
-4. `prompts/04-fix-and-verify.md` - 1件だけ修正し、テストと再レビューまで行う
 
 各プロンプトの役割は `prompts/README.md` にまとめています。
 
@@ -66,7 +65,6 @@ prompts/
   01-code-review.md
   02-infrastructure-review.md
   03-cross-layer-review.md
-  04-fix-and-verify.md
 test/
 training-fixtures/
 Dockerfile
