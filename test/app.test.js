@@ -47,6 +47,17 @@ test("user search finds a matching user", async () => {
   assert.equal(body.users[0].email, "alice@example.test");
 });
 
+test("user search treats SQL syntax as text", async () => {
+  const payload = "' OR 1=1 --";
+  const response = await fetch(
+    `${baseUrl}/api/users/search?email=${encodeURIComponent(payload)}`,
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.users, []);
+});
+
 test("current user requires authentication", async () => {
   const response = await fetch(`${baseUrl}/api/me`);
 
@@ -74,4 +85,3 @@ test("preview endpoint returns an upstream response", async () => {
   assert.equal(body.finalUrl, target);
   assert.equal(body.body, "preview body");
 });
-
