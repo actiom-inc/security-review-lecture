@@ -51,7 +51,7 @@ src/
 test/
 prompts/
 docs/
+training-fixtures/
 Dockerfile
 .github/workflows/ci.yml
 ```
-

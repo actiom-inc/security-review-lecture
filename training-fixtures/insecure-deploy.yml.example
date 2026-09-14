@@ -1,0 +1,20 @@
+# Training fixture only. GitHub does not execute this file.
+name: Insecure deployment example
+
+on:
+  pull_request_target:
+
+permissions: write-all
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pull request code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Simulated deployment
+        run: echo "This step is intentionally non-functional."
+
