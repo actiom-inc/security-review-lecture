@@ -1,7 +1,7 @@
 # デモ: インフラ構成をレビューする
 
 ```text
-`infra/` と `docs/system-context.md` を読み、インフラ構成のセキュリティレビューをしてください。
+`infra/`、`docs/system-context.md`、`docs/architecture.md` を読み、インフラ構成のセキュリティレビューをしてください。
 
 まだコードやTerraformの変更は行わず、分析だけをしてください。
 
@@ -13,7 +13,7 @@
 - Cloud SQLのネットワーク公開範囲
 - Secretの管理方法
 - バックアップと復旧性
-- `docs/system-context.md` に書かれた意図とTerraformの実装の差分
+- ドキュメントに書かれた意図とTerraformの実装の差分
 
 重要度が高い順に最大5件を報告してください。
 
