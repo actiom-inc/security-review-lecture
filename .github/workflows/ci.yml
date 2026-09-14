@@ -1,0 +1,24 @@
+name: Demo CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run tests
+        run: npm test
+

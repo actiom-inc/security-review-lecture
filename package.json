@@ -1,0 +1,15 @@
+{
+  "name": "security-review-lecture-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Intentionally vulnerable Web API for an AI security review lecture",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  }
+}
+
