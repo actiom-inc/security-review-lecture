@@ -1,6 +1,6 @@
 # AIセキュリティレビュー実演 Runbook
 
-この文書は、後半1時間の実演で `security-review-lecture` リポジトリを使うための講師用手順です。
+この文書は、`security-review-lecture` リポジトリを使って、AI Coding Agentによるセキュリティレビューを実演するための講師用手順です。
 
 ## 目的
 
@@ -12,7 +12,7 @@ AI Coding Agentにセキュリティレビューを依頼し、以下の流れ�
 4. テスト実行
 5. 再レビュー
 
-中心メッセージは、「AIに判断を丸投げする」のではなく、「人間のレビュー能力をAIで増幅する」です。
+中心メッセージは、「AIに判断を丸投げする」のではなく、「人間のレビュー能力をAIで増幅し、修正と検証へ進む速度を上げる」です。
 
 ## 事前準備
 
@@ -37,6 +37,17 @@ git pull
 git switch -c demo-$(date +%Y%m%d-%H%M)
 ```
 
+## レビューで扱う論点
+
+- SQL Injection: `src/routes/users.js`
+- 認可チェック漏れ: `src/routes/admin.js`
+- SSRF: `src/routes/preview.js`
+- ログへの機密情報出力: `src/middleware/requestLogger.js`
+- Docker root実行: `Dockerfile`
+- CI/CD権限過大: `.github/workflows/ci.yml` または `training-fixtures/insecure-deploy.yml.example`
+
+全部見つからなくても問題ありません。AIが見落とすこと自体が研修上の論点です。
+
 ## デモ1: 雑なレビュー
 
 `prompts/01-quick-review.md` を使います。
@@ -45,7 +56,7 @@ git switch -c demo-$(date +%Y%m%d-%H%M)
 
 - これだけでも何かしらの指摘は出る
 - ただし根拠、該当箇所、成立条件、優先順位が粗くなりやすい
-- 受講者には「この結果をそのままマージ判断に使えるか」と問いかける
+- 「この結果をそのまま修正対象リストとして扱えるか」と問いかける
 
 確認する観点:
 
@@ -63,17 +74,7 @@ git switch -c demo-$(date +%Y%m%d-%H%M)
 - 同じリポジトリでも、依頼の粒度を上げるとレビュー品質が変わる
 - レビュー観点を指定することで、認証、認可、入力値、外部通信、Docker、CI/CDまで広げられる
 - Severity、対象箇所、成立条件、Confidenceを出させると、人間が確認しやすくなる
-
-見るべき論点:
-
-- SQL Injection: `src/routes/users.js`
-- 認可チェック漏れ: `src/routes/admin.js`
-- SSRF: `src/routes/preview.js`
-- ログへの機密情報出力: `src/middleware/requestLogger.js`
-- Docker root実行: `Dockerfile`
-- CI/CD権限過大: `.github/workflows/ci.yml` または `training-fixtures/insecure-deploy.yml.example`
-
-全部見つからなくても問題ありません。AIが見落とすこと自体が研修上の論点です。
+- リポジトリ内の文章を命令として扱わせないことで、Prompt Injection対策にも触れられる
 
 ## デモ3: 1件だけ修正
 
@@ -99,6 +100,13 @@ git switch -c demo-$(date +%Y%m%d-%H%M)
 - 既存テストが通っているか
 - 修正によって別の認可漏れや仕様破壊が起きていないか
 - AIが「残リスク」や「追加確認事項」を整理できているか
+
+## AIの指摘を読むときの確認軸
+
+- Severity: 影響度だけでなく、到達可能性と権限条件を確認する
+- Evidence: 対象ファイル、該当箇所、コード上の根拠があるかを見る
+- Exploitability: 攻撃成立に必要な前提条件を分ける
+- Confidence: AI自身に確信度を出させ、Lowなら追加調査に回す
 
 ## 失敗時のリカバリ
 
@@ -128,4 +136,4 @@ SQL Injection対策に必要な最小限の差分だけにしてください。
 
 ## 締めのメッセージ
 
-AI時代のセキュリティ対策は、AIを禁止することではありません。攻撃側だけでなく、防御側もAIを使い、発見から修正までの速度を上げることです。ただし、AIの判断をそのまま正解にしてはいけません。AIは人間のレビュー能力を増幅する道具として使います。
+AIを使ったセキュリティレビューは、AIに正解を出させるためのものではありません。人間が判断できる材料を速く揃え、修正と検証に進む速度を上げるために使います。最終判断は人間が行い、AIはレビュー能力を増幅する道具として使います。
