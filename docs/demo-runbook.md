@@ -4,16 +4,13 @@
 
 ## 目的
 
-次の順序で、レビュー対象を徐々に広げます。
+レビュー対象を次の3段階で広げます。
 
-1. アプリケーションコードだけをレビューする
-2. レビュー観点と出力形式を指定する
-3. Terraformとシステム前提をレビューする
-4. コードとインフラを横断してAttack Pathを考えさせる
-5. 重要な問題を1件だけ修正する
-6. テストと再レビューを行う
+1. アプリケーションコードをレビューする
+2. Terraformとシステム前提をレビューする
+3. コードとインフラを横断してAttack Pathを考えさせる
 
-ポイントは「AIに脆弱性の正解を出させる」ことではなく、コード単体では見えないTrust BoundaryやBlast Radiusまでレビュー対象を広げられることを見せることです。
+研修で使用するデモ用プロンプトは `prompts/` 配下の3ファイルだけです。
 
 ## 事前準備
 
@@ -66,7 +63,7 @@ git switch -c demo-$(date +%Y%m%d-%H%M)
 
 `docs/system-context.md` では、信頼されたIdentity-aware proxyがクライアントの `x-user-id` を除去し、検証済みIDを注入する前提です。一方TerraformではCloud Runへ直接アクセスできます。
 
-そのためAIには、次のようなAttack Pathを見つけてほしいです。
+想定するAttack Path:
 
 ```text
 Internet
@@ -82,95 +79,53 @@ src/middleware/auth.js がその値を信頼
 管理APIの認可漏れと組み合わせて監査ログへアクセス
 ```
 
-この問題はコードだけ、Terraformだけを見るより、両方と `system-context.md` を読んだ方が明確になります。
+SSRFについては、コード上の問題として十分に指摘できます。ただし現在のfixtureだけから「GCP Metadata ServerからCredentialを取得できる」と断定するのは根拠不足です。成立条件が不足している場合は「追加確認が必要」と扱います。
 
-SSRFについては、コード上の問題として十分に指摘できますが、現在のfixtureだけから「GCP Metadata ServerからCredentialを取得できる」と断定させないでください。成立条件が不足している場合は「追加確認が必要」と言わせるのが適切です。
+## デモ1: アプリケーションコードレビュー
 
-## デモ1: コードだけをレビュー
+使用ファイル: `prompts/01-code-review.md`
 
-`prompts/01-quick-review.md` を使います。
+レビュー対象を `src/`、`Dockerfile`、`.github/workflows/`、`package.json` に限定します。ここでは `infra/` を見せず、コードや設定ファイルだけからどこまで問題を見つけられるかを確認します。
 
-ここでは結果の件数を採点しません。AIがどのコードを根拠に、どのような問題候補を出すかを見ます。
-
-確認する観点:
+結果を見るときは、指摘件数ではなく次を確認します。
 
 - 対象ファイルと該当箇所が示されているか
-- Severityの根拠があるか
-- 攻撃成立条件を区別できているか
-- コードから証明できないことを断定していないか
+- コード上の根拠があるか
+- 攻撃成立条件が整理されているか
+- コードだけで分からない内容を断定していないか
 
-## デモ2: 構造化レビュー
+## デモ2: インフラレビュー
 
-`prompts/02-structured-review.md` を使います。
+使用ファイル: `prompts/02-infrastructure-review.md`
 
-雑な依頼と比較し、Severity、Confidence、根拠、成立条件、影響を指定すると人間が検証しやすい出力になることを見せます。
+対象は `infra/`、`docs/system-context.md`、`docs/architecture.md` です。
 
-## デモ3: インフラレビュー
+主な確認ポイント:
 
-`prompts/05-infrastructure-review.md` を使います。
+- Cloud Runの公開範囲
+- Runtime Service Accountの権限
+- Cloud SQLのPublic exposure
+- Secretの扱い
+- Backup設定
+- 設計意図とTerraform実装の差分
 
-`infra/` と `docs/system-context.md` だけを見せます。
+コードレビューとは違い、到達性、IAM、ネットワーク、データ保護などが中心になります。
 
-期待する主な指摘:
+## デモ3: コード + インフラ横断レビュー
 
-- Cloud Runの直接公開が設計意図と一致しない
-- Runtime Service Accountの権限が広すぎる
-- Cloud SQLのPublic exposureが広すぎる
-- DB Secretの扱いが不適切
-- Backupが無効
+使用ファイル: `prompts/03-cross-layer-review.md`
 
-ここでも全件発見を期待しません。
+このデモでは単独の脆弱性一覧ではなく、複数の弱点をつないだAttack Pathを出させます。
 
-## デモ4: コード + インフラ横断レビュー
+特に次の4ファイルを開きながら確認します。
 
-`prompts/06-cross-layer-review.md` を使います。
+1. `docs/system-context.md` - `x-user-id` はProxyが保証する前提
+2. `infra/main.tf` - Cloud RunへInternetから直接到達できる
+3. `src/middleware/auth.js` - `x-user-id` をユーザーIDとして利用する
+4. `src/routes/admin.js` - 管理者roleの確認がない
 
-このデモの中心は、単独の脆弱性一覧ではなくAttack Pathです。
+ここで、コード単体の問題を「Trust Boundaryの破綻」として評価できることを示します。
 
-特に `x-user-id` の信頼前提とCloud Runの直接公開を組み合わせて指摘できるかを見ます。
+## 締めのポイント
 
-AIが指摘した場合は、以下の順でコードとTerraformを開きながら説明します。
-
-1. `docs/system-context.md`: `x-user-id` はProxyが保証する前提
-2. `infra/main.tf`: Cloud RunがInternetから直接呼べる
-3. `src/middleware/auth.js`: `x-user-id` をそのままユーザーIDとして利用
-4. `src/routes/admin.js`: `admin` roleの確認がない
-
-これで「コード上の1行」ではなく「Trust Boundaryの破綻」として説明できます。
-
-AIがここを見落とした場合も問題ありません。「コード単体のScannerと同様、AIにもFalse Negativeがある」という説明に切り替えます。資料への追記は不要です。
-
-## デモ5: 1件だけ修正
-
-`prompts/03-fix-one-finding.md` を使います。
-
-時間と分かりやすさを優先するならSQL Injectionの修正を推奨します。
-
-一気に複数件を直させず、1件・最小差分・テスト追加に限定します。
-
-## デモ6: テストと再レビュー
-
-`prompts/04-re-review.md` を使います。
-
-確認すること:
-
-- テストが追加されているか
-- 既存テストが通るか
-- 修正によって新しい問題が増えていないか
-- 残リスクと追加確認事項が整理されているか
-
-## デモ結果に依存しない説明の軸
-
-AIの結果は毎回変わるため、「何件見つけたか」の答え合わせはしません。
-
-結果が何であっても、次の5点で読みます。
-
-1. コード / Terraform上の根拠はあるか
-2. 攻撃経路は本当に成立するか
-3. どのTrust Boundaryを越えるのか
-4. 到達する資産とBlast Radiusは何か
-5. 推測と確認済み事実を分けているか
-
-## 締めのメッセージ
-
-AIを使ったセキュリティレビューの価値は、単に脆弱性候補を列挙することではありません。リポジトリ、IaC、システム前提をまとめて読ませることで、人間が別々に確認していた情報を横断し、攻撃経路として整理するところにあります。
+AIを使ったセキュリティレビューの価値は、単に脆弱性候補を列挙することではありません。リポジトリ、IaC、システム前提をまとめて読ませることで、人間が別々に確認していた情報を横断し、Attack Pathとして整理するところにあります。

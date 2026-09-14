@@ -27,12 +27,13 @@ curl http://localhost:3000/health
 
 ## デモの進め方
 
-1. `prompts/01-quick-review.md` で、まずアプリケーションコードをレビューする
-2. `prompts/02-structured-review.md` で、レビュー観点と出力形式を指定して結果を比較する
-3. `prompts/05-infrastructure-review.md` で、`infra/` と `docs/system-context.md` をレビューする
-4. `prompts/06-cross-layer-review.md` で、コードとインフラを横断した攻撃経路を考えさせる
-5. `prompts/03-fix-one-finding.md` で、重要度の高い問題を1件だけ修正する
-6. `prompts/04-re-review.md` で、テストと再レビューを行う
+研修では `prompts/` 配下の3ファイルを番号順に使用します。
+
+1. `prompts/01-code-review.md` - アプリケーションコードをレビューする
+2. `prompts/02-infrastructure-review.md` - Terraformとシステム前提をレビューする
+3. `prompts/03-cross-layer-review.md` - コードとインフラを横断してAttack Pathをレビューする
+
+各プロンプトの役割は `prompts/README.md` にまとめています。
 
 実演をやり直すときは、`main` から新しい作業ブランチを作成してください。
 
@@ -58,11 +59,16 @@ infra/
   versions.tf
 docs/
   system-context.md
+  architecture.md
 prompts/
+  README.md
+  01-code-review.md
+  02-infrastructure-review.md
+  03-cross-layer-review.md
 test/
 training-fixtures/
 Dockerfile
 .github/workflows/ci.yml
 ```
 
-`src/` だけを見たレビューと、`src/` + `infra/` + `docs/system-context.md` をまとめて見たレビューで、指摘の内容や優先順位がどう変わるかを比較することがこの教材の中心です。
+この教材では、レビュー対象を「コード」から「インフラ」、さらに「コード + インフラ + システム前提」へ広げることで、単独の脆弱性だけでなくTrust BoundaryやAttack PathまでAIにレビューさせます。
