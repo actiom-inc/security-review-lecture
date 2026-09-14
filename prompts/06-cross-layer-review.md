@@ -7,6 +7,7 @@
 - `src/`
 - `infra/`
 - `docs/system-context.md`
+- `docs/architecture.md`
 - `.github/workflows/`
 
 まだ変更は行わず、分析だけをしてください。
