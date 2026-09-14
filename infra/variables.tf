@@ -15,7 +15,7 @@ variable "container_image" {
 }
 
 variable "db_password" {
-  description = "Training fixture value only. This deliberately models unsafe secret handling."
+  description = "Database password used by the demo API."
   type        = string
   default     = "training-demo-password-change-me"
 }
